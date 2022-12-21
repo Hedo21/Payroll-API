@@ -46,11 +46,11 @@ class KaryawanController extends Controller
 
     public function yajra()
     {
-        $karyawans = karyawan::select(['id_karyawan', 'username', 'level_karyawan', 'nama', 'alamat', 'email', 'no_telpon', 'absensi']);
-        return DataTables::of($karyawans)
+        $karyawan = karyawan::select(['id_karyawan', 'password', 'username', 'level_karyawan', 'nama', 'alamat', 'email', 'no_telpon', 'absensi']);
+        return DataTables::of($karyawan)
             ->addColumn('action', function ($data) {
-                $button = '<a href="javascript:void(0)" id="btn-update" data-id="' . $data->id . '" class="btn btn-success">Update</a>';
-                $button .= '<a href="javascript:void(0)" id="btn-delete" data-id="' . $data->id . '" class="btn btn-danger">Delete</a>';
+                $button = '<a href="javascript:void(0)" id="btn-update" data-id="' . $data->id_karyawan . '" class="btn btn-secondary me-2">Update</a>';
+                $button .= '<a href="javascript:void(0)" id="btn-delete" data-id="' . $data->id_karyawan . '" class="btn btn-dark">Delete</a>';
                 return $button;
             })->rawColumns(['action'])
             ->addIndexColumn()
@@ -77,7 +77,7 @@ class KaryawanController extends Controller
                 'absensi'        => 'required',
             ],
             [
-                'username.required'       => 'Masukkan Usernam',
+                'username.required'       => 'Masukkan Username',
                 'password.required'       => 'Masukkan Password',
                 'level_karyawan.required' => 'Masukkan Level Karyawan',
                 'nama.required'           => 'Masukkan Nama',
@@ -92,22 +92,22 @@ class KaryawanController extends Controller
                 'success' => false,
                 'message' => 'Silahkan Isi Bidang Yang Kosong',
                 'data'    => $validator->errors()
-            ], 401);
+            ]);
         } else {
             $karyawan = karyawan::create([
-                'username'       => $request->input('username'),
-                'password'       => $request->input('password'),
-                'level_karyawan' => $request->input('level_karyawan'),
-                'nama'           => $request->input('nama'),
-                'alamat'         => $request->input('alamat'),
-                'email'          => $request->input('email'),
-                'no_telpon'      => $request->input('no_telpon'),
-                'absensi'        => $request->input('absensi'),
+                'username'       => $request->username,
+                'password'       => $request->password,
+                'level_karyawan' => $request->level_karyawan,
+                'nama'           => $request->nama,
+                'alamat'         => $request->alamat,
+                'email'          => $request->email,
+                'no_telpon'      => $request->no_telpon,
+                'absensi'        => $request->absensi,
             ]);
             if ($karyawan) {
                 return response()->json([
                     'success' => true,
-                    'id'      => $karyawan->id,
+                    'id'      => $karyawan->id_karyawan,
                     'message' => 'Data Berhasil Disimpan!',
                 ], 200);
             } else {
@@ -127,26 +127,30 @@ class KaryawanController extends Controller
      * @param  \App\Models\karyawan  $karyawan
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($id_karyawan)
     {
-        $karyawan = karyawan::where('id_karyawan', '=', $id)->first();
-        $response = [
-            'message' => 'Data Karyawan',
-            'data'    => $karyawan,
-        ];
-        if ($karyawan) {
-            return response()->json([
-                'status' => true,
-                $response,
-                'message' => 'Berhasil Ditemukan'
-            ], 200);
-        } else {
-            return response()->json([
-                'status' => false,
-                $response,
-                'message' => 'Data Tidak Ada',
-            ], 200);
-        }
+        $karyawan = karyawan::find($id_karyawan);
+        return response()->json([
+            'data' => $karyawan,
+        ]);
+        // $karyawan = karyawan::where('id_karyawan', '=', $id)->first();
+        // $response = [
+        //     'message' => 'Data Karyawan',
+        //     'data'    => $karyawan,
+        // ];
+        // if ($karyawan) {
+        //     return response()->json([
+        //         'status' => true,
+        //         $response,
+        //         'message' => 'Berhasil Ditemukan'
+        //     ], 200);
+        // } else {
+        //     return response()->json([
+        //         'status' => false,
+        //         $response,
+        //         'message' => 'Data Tidak Ada',
+        //     ], 200);
+        // }
     }
 
     /**
@@ -161,7 +165,7 @@ class KaryawanController extends Controller
         $validator = Validator::make(
             $request->all(),
             [
-                'id_karyawan'    => 'required',
+                // 'id_karyawan'    => 'required',
                 'username'       => 'required',
                 'password'       => 'required',
                 'level_karyawan' => 'required',
@@ -172,7 +176,7 @@ class KaryawanController extends Controller
                 'absensi'        => 'required',
             ],
             [
-                'id_karyawan.required'    => 'Masukkan id Karyawan',
+                // 'id_karyawan.required'    => 'Masukkan id Karyawan',
                 'username.required'       => 'Masukkan Username',
                 'password.required'       => 'Masukkan Password',
                 'level_karyawan.required' => 'Masukkan Level Karyawan',
@@ -190,9 +194,9 @@ class KaryawanController extends Controller
                 'data'    => $validator->errors()
             ], 401);
         } else {
-            $karyawan = karyawan::where('id_karyawan', $id_karyawan);
+            $karyawan = karyawan::find($id_karyawan);
             $karyawan->update([
-                'id_karyawan'    => $request->id_karyawan,
+                // 'id_karyawan'    => $request->id_karyawan,
                 'username'       => $request->username,
                 'password'       => $request->password,
                 'level_karyawan' => $request->level_karyawan,
@@ -203,9 +207,9 @@ class KaryawanController extends Controller
                 'absensi'        => $request->absensi,
             ]);
             return response()->json([
-                'succes'   => true,
-                'karyawan' => new karyawan(),
-                'message'  => 'berhasil update',
+                'success' => true,
+                'data'    => $karyawan,
+                'message' => 'berhasil update',
             ]);
         }
     }

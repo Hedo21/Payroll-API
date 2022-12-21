@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\gaji;
 use App\Http\Controllers\Controller;
+use App\Models\karyawan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Yajra\DataTables\DataTables as DataTablesDataTables;
+use Yajra\DataTables\Facades\DataTables;
 
 class GajiController extends Controller
 {
@@ -17,7 +20,7 @@ class GajiController extends Controller
     public function index()
     {
         // $gaji = gaji::all();
-        $gaji = gaji::with('gaji_karyawan')->get();
+        $gaji = gaji::with('nama_karyawan')->get();
         $response = [
             'message' => 'Data gaji',
             'data'    => $gaji,
@@ -37,6 +40,25 @@ class GajiController extends Controller
         }
     }
 
+    public function tampil()
+    {
+        $karyawans = karyawan::all();
+        return view('gaji', compact('karyawans'));
+    }
+
+    public function yajra()
+    {
+        $gaji = gaji::select(['id_gaji', 'id_karyawan', 'id_uang_makan', 'gaji_basic', 'slip_gaji', 'pensiun', 'dana_lain'])->with(['nama_karyawan']);
+        return DataTables::of($gaji)
+            ->addColumn('action', function ($data) {
+                $button = '<a href="javascript:void(0)" id="btn-update" data-id="' . $data->id_gaji . '" class="btn btn-secondary me-2">Update</a>';
+                $button .= '<a href="javascript:void(0)" id="btn-delete" data-id="' . $data->id_gaji . '" class="btn btn-dark">Delete</a>';
+                return $button;
+            })->rawColumns(['action'])
+            ->addIndexColumn()
+            ->make(true);
+    }
+
     /**
      * Show the form for creating a new resource.
      *
@@ -47,7 +69,6 @@ class GajiController extends Controller
         $validator = Validator::make(
             $request->all(),
             [
-                'id_gaji'       => 'required|unique:gaji,id_gaji',
                 'id_karyawan'   => 'required',
                 'id_uang_makan' => 'required',
                 'gaji_basic'    => 'required',
@@ -56,7 +77,6 @@ class GajiController extends Controller
                 'dana_lain'     => 'required',
             ],
             [
-                'id_gaji.required'       => 'Masukkan Id Gaji',
                 'id_karyawan.required'   => 'Masukkan Id Karyawan',
                 'id_uang_makan.required' => 'Masukkan Id Uang Makan',
                 'gaji_basic.required'    => 'Masukkan Gaji Basic',
@@ -73,13 +93,12 @@ class GajiController extends Controller
             ], 401);
         } else {
             $gaji = gaji::create([
-                'id_karyawan'   => $request->input('id_karyawan'),
-                'id_gaji'       => $request->input('id_gaji'),
-                'id_uang_makan' => $request->input('id_uang_makan'),
-                'gaji_basic'    => $request->input('gaji_basic'),
-                'slip_gaji'     => $request->input('slip_gaji'),
-                'pensiun'       => $request->input('pensiun'),
-                'dana_lain'     => $request->input('dana_lain'),
+                'id_karyawan'   => $request->id_karyawan,
+                'id_uang_makan' => $request->id_uang_makan,
+                'gaji_basic'    => $request->gaji_basic,
+                'slip_gaji'     => $request->slip_gaji,
+                'pensiun'       => $request->pensiun,
+                'dana_lain'     => $request->dana_lain,
             ]);
             if ($gaji) {
                 return response()->json([
@@ -94,8 +113,6 @@ class GajiController extends Controller
                 ], 401);
             }
         }
-
-        //
     }
 
     /**
@@ -106,24 +123,28 @@ class GajiController extends Controller
      */
     public function show($id_gaji)
     {
-        $gaji = gaji::with('gaji_karyawan')->where('id_gaji', '=', $id_gaji)->get();
-        $response = [
-            'message' => 'Data Gaji',
-            'data'    => $gaji,
-        ];
-        if ($gaji) {
-            return response()->json([
-                'status'   => true,
-                $response,
-                'message'  => 'Gaji ditemukan'
-            ], 200);
-        } else {
-            return response()->json([
-                'status'   => false,
-                $response,
-                'message'  => 'Data Gaji tidak ada'
-            ], 200);
-        }
+        $gaji = gaji::find($id_gaji);
+        return response()->json([
+            'data' => $gaji
+        ]);
+        // $gaji = gaji::with('gaji_karyawan')->where('id_gaji', '=', $id_gaji)->get();
+        // $response = [
+        //     'message' => 'Data Gaji',
+        //     'data'    => $gaji,
+        // ];
+        // if ($gaji) {
+        //     return response()->json([
+        //         'status'   => true,
+        //         $response,
+        //         'message'  => 'Gaji ditemukan'
+        //     ], 200);
+        // } else {
+        //     return response()->json([
+        //         'status'   => false,
+        //         $response,
+        //         'message'  => 'Data Gaji tidak ada'
+        //     ], 200);
+        // }
     }
 
     /**
@@ -138,7 +159,7 @@ class GajiController extends Controller
         $validator = Validator::make(
             $request->all(),
             [
-                'id_gaji'       => 'required',
+                // 'id_gaji'       => 'required',
                 'id_karyawan'   => 'required',
                 'id_uang_makan' => 'required',
                 'gaji_basic'    => 'required',
@@ -147,7 +168,7 @@ class GajiController extends Controller
                 'dana_lain'     => 'required',
             ],
             [
-                'id_gaji.required'       => 'Masukkan id gaji',
+                // 'id_gaji.required'       => 'Masukkan id gaji',
                 'id_karyawan.required'   => 'Masukkan id Karyawan',
                 'id_uang_makan.required' => 'Masukkan id uang makan',
                 'gaji_basic.required'    => 'Masukkan gaji basic',
@@ -163,9 +184,9 @@ class GajiController extends Controller
                 'data'    => $validator->errors()
             ], 401);
         } else {
-            $gaji = gaji::where('id_gaji', $id_gaji);
+            $gaji = gaji::find($id_gaji);
             $gaji->update([
-                'id_gaji'       => $request->id_gaji,
+                // 'id_gaji'       => $request->id_gaji,
                 'id_karyawan'   => $request->id_karyawan,
                 'id_uang_makan' => $request->id_uang_makan,
                 'gaji_basic'    => $request->gaji_basic,
@@ -175,7 +196,7 @@ class GajiController extends Controller
             ]);
             return response()->json([
                 'succes'  => true,
-                'gaji'    => new gaji(),
+                'gaji'    => $gaji,
                 'message' => 'berhasil update',
             ]);
         }

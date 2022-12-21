@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class gaji extends Model
 {
-    protected $table = "gaji";
-    protected $fillable = [
-        'id_karyawan',
+    protected $table      = "gaji";
+    protected $primaryKey = "id_gaji";
+    protected $fillable   = [
         'id_gaji',
+        'id_karyawan',
         'id_uang_makan',
         'gaji_basic',
         'slip_gaji',
@@ -19,8 +20,9 @@ class gaji extends Model
     ];
     use HasFactory;
 
-    public function gaji_karyawan()
+    public function nama_karyawan()
     {
-        return $this->belongsTo(karyawan::class, 'id_karyawan');
+        return $this->belongsTo('App\Models\karyawan', 'id_karyawan', 'id_karyawan');
+        // return $this->belongsTo(karyawan::class, 'id_karyawan');
     }
 }
